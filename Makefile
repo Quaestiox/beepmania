@@ -1,5 +1,5 @@
 GCCFLAGS = -nostartfiles -no-pie
-LIBFLAGS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+LIBFLAGS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -lc
 
 all: beep 
 .PHONY: all clean run 
