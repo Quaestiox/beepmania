@@ -10,6 +10,10 @@ format: db "%i",0
 
 FPS dd 60
 
+
+CreateTime dq 15
+CreateTime_const dq 15
+
 score dd 0
 score_x dd 608
 score_y dd 40
@@ -43,7 +47,9 @@ key_d dd 68
 key_k dd 75
 key_l dd 76
 
-note_count: dd 0
+speed dq 5
+
+note_count: dq 0
 note_size: dq 0
 
 note_x: dd 330
@@ -170,15 +176,28 @@ main_loop:
 .no_key:
 	call EndDrawing
 
+	mov rax, [CreateTime]
+	sub rax, 1
+	mov [CreateTime], rax
+	cmp rax, 1
+	jne .next
+	mov rax, [CreateTime_const]
+	mov [CreateTime], rax
 
-	mov rdi, 1
-	mov rsi, 4
+	mov rdi, 0
+	mov rsi, 3
 	call GetRandomValue
 	mov r15, rax
 	mov r14, [note_count]
 	mov r13, [note_size]
+	mov rax, [note1_width]
+	mov rbx, r15
+	mul rbx
+	mov r12, rax
+
 .create_notes:
 	mov eax, [note_x]
+	add eax, r12d
 	mov [notelist+r13], eax
 	mov eax, [note_y]
 	mov [notelist+r13+4], eax
@@ -188,12 +207,36 @@ main_loop:
 	mov [notelist+r13+12], eax
 	add r13, 16
 	mov [note_size],r13
+	add r14, 1
+	mov [note_count], r14
 
-
+.next:
 	mov r15, [note_count]
-.draw_notes:
+
+	cmp r15, 0
+	je .next2
+
+	mov r14, 0
+.draw_notes:  ; 遍历数组
+	mov edi, [notelist+r14]
+	mov esi, [notelist+r14+4]
+	mov edx, [notelist+r14+8]
+	mov ecx, [notelist+r14+12]
+	mov r8,  [color_green]
+	call DrawRectangle
+	mov eax, [notelist+r14+4]
+	add eax, [speed]	; note 下落速度
+	mov [notelist+r14+4], eax
+	
 
 
+	add r14, 16
+
+	sub r15, 1
+	cmp r15, 0
+	jne .draw_notes
+
+.next2:
 
 	jmp main_loop
 
