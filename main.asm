@@ -34,7 +34,7 @@ bar1_y dd 150
 bar1_width dd 100
 bar1_height dd 600
 
-space dd 10
+space dd 20
 
 color_green db  0,255,0,255
 color_white db 255,255,255,255
@@ -51,6 +51,7 @@ speed dq 5
 
 note_count: dq 0
 note_size: dq 0
+judge: dd 30
 
 note_x: dd 330
 note_y: dd 150
@@ -144,30 +145,61 @@ main_loop:
 	jne .draw_bars
 
 
-   	mov edi, [key_s]
+	xor rdx, rdx
+	mov r15, 0
+	mov r14, 0
+	mov r10, 0
+.key_pressed_check:
+
+   	mov edi, [key_s+r14]
 	call IsKeyPressed
 	cmp rax, 1
-	je .key_1
+	jne .key_pressed_check_step2
 
+	mov r13, [note_count]
+	mov r12, 0
 
-	mov edi, [key_d]
-	call IsKeyPressed
-	cmp rax, 1
-	je .key_2
+.note_judge:
+	mov ebx, [notelist+r12]
+	mov ecx, [note1_x]; 轨道判断
+	add ecx, r10d
+	cmp ebx, ecx 
+	jne .note_judge_step3
 
-	jmp .no_key
+	mov eax, [notelist+r12+4]	
+	cmp eax, 750
+	jl .negative
+	sub eax, 750
+	cmp eax, [judge]
+	jl .note_judge_step2
+	jmp .note_judge_step3
+.negative:
+	mov ebx, 750
+	sub ebx, eax
+	cmp ebx, [judge]
+	jl .note_judge_step2
+	jmp .note_judge_step3
 
-.key_1: 
+.note_judge_step2:
 	mov eax, [score]
 	add eax, 100
 	mov [score], eax
-	jmp .no_key
+	mov eax, [color_black]
+	mov [notelist+r12+12], eax
 
-.key_2:
-	mov rdi, 1
-	mov rsi, 4
-	call GetRandomValue
-	mov [score], eax
+.note_judge_step3:
+	add r12, 16
+	sub r13, 1
+	cmp r13, 0
+	jne .note_judge
+	
+
+.key_pressed_check_step2:
+	add r10d, [note1_width]
+	add r14, 4
+	add r15, 1
+	cmp r15, 4
+	jne .key_pressed_check
 
 
 	jmp .no_key
@@ -176,7 +208,12 @@ main_loop:
 .no_key:
 	call EndDrawing
 
-	mov rax, [CreateTime]
+	mov rax, [note_count] ; 超过1000notes停止生成
+	cmp rax, 1000
+	je .next
+
+
+	mov rax, [CreateTime] ; note生成间隔
 	sub rax, 1
 	mov [CreateTime], rax
 	cmp rax, 1
