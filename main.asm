@@ -59,18 +59,17 @@ color_blue db 0,121,241,255
 color_yellow db 253,249,0,255
 
 start_time dq 0
-end_time dq 30.0 ; 游戏时间
 
-key_s dd 83
-key_d dd 68
-key_k dd 75
-key_l dd 76
+
+key_1 dd 83
+key_2 dd 68
+key_3 dd 75
+key_4 dd 76
 
 time_x dd 700
 time_y dd 40
 time_size dd 30
 
-speed dq 10
 
 note_count: dq 0
 note_size: dq 0
@@ -93,9 +92,25 @@ end_x: dd 380
 end_y: dd 430
 end_size:dd 34
 
+speed_file: db "./config/speed.txt",0
+time_file:db "./config/time.txt",0
+key1_file: db "./config/key1.txt",0
+key2_file: db "./config/key2.txt",0
+key3_file: db "./config/key3.txt",0
+key4_file: db "./config/key4.txt",0
+
 section .bss
 judge_level: resd 10
 notelist: resd 4000
+speed: resq 1
+end_time: resq 1
+
+;key_list:
+;key_1: resq 1
+;key_2: resq 1
+;key_3: resq 1
+;key_4: resq 1
+
 
 section .text
 	global _start
@@ -115,7 +130,10 @@ section .text
 	extern TextFormat
 	extern GetRandomValue
 	extern GetTime
-
+	extern LoadFileData
+	extern LoadFileText
+	extern atoi
+	extern atof
 _start:
 	mov rdi, [window_width]
 	mov rsi, [window_height]
@@ -125,6 +143,44 @@ _start:
 	call SetTargetFPS
 	call GetTime
 	movsd [start_time], xmm0
+
+	mov rdi, speed_file
+	call LoadFileText
+	mov rdi, rax
+	call atoi
+	mov [speed], rax
+
+	mov rdi, time_file
+	call LoadFileText
+	mov rdi, rax
+	call atof
+	movsd [end_time], xmm0
+
+	mov rdi, key1_file
+	call LoadFileText
+	mov rdi, rax
+	call atoi
+	mov [key_1], eax
+
+	mov rdi, key2_file
+	call LoadFileText
+	mov rdi, rax
+	call atoi
+	mov [key_2], eax
+
+	mov rdi, key3_file
+	call LoadFileText
+	mov rdi, rax
+	call atoi
+	mov [key_3], eax
+
+	mov rdi, key4_file
+	call LoadFileText
+	mov rdi, rax
+	call atoi
+	mov [key_4], eax
+
+
 
 main_loop:
 	
@@ -208,7 +264,7 @@ main_loop:
 	mov r10, 0
 .key_pressed_check:
 
-   	mov edi, [key_s+r14]
+   	mov edi, [key_1 + r14]
 	call IsKeyPressed
 	cmp rax, 1
 	jne .key_pressed_check_step2
