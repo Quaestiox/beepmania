@@ -8,6 +8,9 @@ score_text: db "Score:",0
 
 format: db "%i",0
 
+judge_show: db "judge:",0
+judge_color: db 0,0,0,255
+
 FPS dd 120
 
 
@@ -19,10 +22,21 @@ score_x dd 608
 score_y dd 40
 score_size dd 30
 
+end_score_x dd 620
+end_score_y dd 430
+end_score_size dd 40
 
 text_x dd 500
 text_y dd 40
 text_size dd 30
+
+judge_x dd 400
+judge_y dd 800
+judge_size dd 30
+
+judgel_x dd 510
+judgel_y dd 800
+judgel_size dd 30
 
 note1_x dd 330
 note1_y dd 150
@@ -41,27 +55,46 @@ color_white db 255,255,255,255
 color_black db 0,0,0,255
 color_red db 255,0,0,255
 color_gray db 130,130,130,100
+color_blue db 0,121,241,255
+color_yellow db 253,249,0,255
+
+start_time dq 0
+end_time dq 30.0 ; 游戏时间
 
 key_s dd 83
 key_d dd 68
 key_k dd 75
 key_l dd 76
 
+time_x dd 700
+time_y dd 40
+time_size dd 30
 
 speed dq 10
 
 note_count: dq 0
 note_size: dq 0
-judge: dd 100
+
+judge_S: dd 30
+judge_A: dd 80
+judge_B: dd 150
 
 note_x: dd 330
 note_y: dd 150
 note_w: dd 100
 note_h: dd 40
 
+perfect: db "Perfect!",0
+great: db "Great",0
+good: db "Good",0
+
+end_score: db "Your Score:",0
+end_x: dd 380
+end_y: dd 430
+end_size:dd 34
 
 section .bss
-
+judge_level: resd 10
 notelist: resd 4000
 
 section .text
@@ -81,6 +114,7 @@ section .text
 	extern IsKeyPressed
 	extern TextFormat
 	extern GetRandomValue
+	extern GetTime
 
 _start:
 	mov rdi, [window_width]
@@ -89,12 +123,25 @@ _start:
 	call InitWindow
 	mov rdi, [FPS]
 	call SetTargetFPS
+	call GetTime
+	movsd [start_time], xmm0
 
 main_loop:
 	
 	call WindowShouldClose
 	test rax, rax
 	jnz .done 
+
+	call GetTime
+	movsd xmm1, xmm0
+
+	movsd xmm2, [start_time]
+	subsd xmm1, xmm2
+
+	movsd xmm3, [end_time]
+	ucomisd xmm1, xmm3
+	jae time_over
+
 
 	mov eax, [note1_y]
 	add eax, 2
@@ -122,6 +169,15 @@ main_loop:
     mov rcx, [score_size]
     mov r8, [color_white]
     call DrawText	; 绘制数字
+
+	mov rdi, judge_show
+    mov rsi, [judge_x]
+    mov rdx, [judge_y]
+    mov rcx, [judge_size]
+    mov r8, [color_white]
+    call DrawText	; 绘制判定
+
+
 
 	mov r15, 0
 	mov r14, [bar1_width]
@@ -171,22 +227,69 @@ main_loop:
 	cmp eax, 750
 	jl .negative
 	sub eax, 750
-	cmp eax, [judge]
-	jl .note_judge_step2
+	cmp ebx, [judge_S]
+	jl .note_judge_S
+	cmp ebx, [judge_A]
+	jl .note_judge_A
+	cmp ebx, [judge_B]
+	jl .note_judge_B
+
+
 	jmp .note_judge_step3
 .negative:
 	mov ebx, 750
 	sub ebx, eax
-	cmp ebx, [judge]
-	jl .note_judge_step2
+	cmp ebx, [judge_S]
+	jl .note_judge_S
+	cmp ebx, [judge_A]
+	jl .note_judge_A
+	cmp ebx, [judge_B]
+	jl .note_judge_B
+
 	jmp .note_judge_step3
 
-.note_judge_step2:
+.note_judge_S:
 	mov eax, [score]
 	add eax, 100
 	mov [score], eax
 	mov eax, [color_black]
 	mov [notelist+r12+12], eax
+	
+	mov rax, "Perfect!"
+	mov [judge_level], rax	
+	mov eax, [color_yellow]
+	mov [judge_color],  eax
+
+	jmp .note_judge_step3
+
+.note_judge_A:
+	mov eax, [score]
+	add eax, 30
+	mov [score], eax
+	mov eax, [color_black]
+	mov [notelist+r12+12], eax
+
+	mov rax, "Great!"
+	mov [judge_level], rax	
+	mov eax, [color_green]
+	mov [judge_color],  eax
+
+	jmp .note_judge_step3
+
+
+.note_judge_B:
+	mov eax, [score]
+	add eax, 15
+	mov [score], eax
+	mov eax, [color_black]
+	mov [notelist+r12+12], eax
+
+	mov rax, "Good!"
+	mov [judge_level], rax	
+	mov eax, [color_blue]
+	mov [judge_color],  eax
+
+
 
 .note_judge_step3:
 	add r12, 16
@@ -207,6 +310,15 @@ main_loop:
 
 
 .no_key:
+	mov rdi, judge_level
+    mov rsi, [judgel_x]
+    mov rdx, [judgel_y]
+    mov rcx, [judgel_size]
+    mov r8, [judge_color]
+    call DrawText	; 绘制判定等级
+
+
+	
 	call EndDrawing
 
 	mov rax, [note_count] ; 超过1000notes停止生成
@@ -284,5 +396,42 @@ main_loop:
 	xor rdi, rdi
 	syscall
 
+time_over:
+	call WindowShouldClose
+	test rax, rax
+	jnz .done 
+
+
+	call BeginDrawing
+	mov rdi, [color_black]
+	call ClearBackground
+
+    mov rdi, end_score
+    mov rsi, [end_x]
+    mov rdx, [end_y]
+    mov rcx, [end_size]
+    mov r8, [color_white]
+    call DrawText	; 绘制分数
+
+
+	mov rdi, format
+	mov rsi, [score]
+	call TextFormat
+	mov rdi, rax
+    mov rsi, [end_score_x]
+    mov rdx, [end_score_y]
+    mov rcx, [end_score_size]
+    mov r8, [color_green]
+    call DrawText	; 绘制数字
+
+
+	call EndDrawing
+	jmp time_over
+
+.done:
+	call CloseWindow
+	mov rax, 60
+	xor rdi, rdi
+	syscall
 
 
