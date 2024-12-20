@@ -13,7 +13,7 @@ There are three judgements: Perfect, Great, Good which corresponding to differen
 - nasm
 - raylib
 
-** Windows** need MinGW
+* Windows need MinGW *
 
 ## How to start
 
@@ -37,7 +37,7 @@ make win
 
 ## Guide
 
-You can change the speed of notes, the time of game and keybindings you want to use in the game.
-By modifying the contents of the txt file in the config directory.
+You can change the speed of notes, the time of game and keybindings you want to use in the game.<br>
+By modifying the contents of the txt file in the config directory.<br>
 *the key files need ASCII code*
 
