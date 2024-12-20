@@ -8,7 +8,7 @@ score_text: db "Score:",0
 
 format: db "%i",0
 
-FPS dd 60
+FPS dd 120
 
 
 CreateTime dq 15
@@ -34,7 +34,7 @@ bar1_y dd 150
 bar1_width dd 100
 bar1_height dd 600
 
-space dd 20
+space dd 40
 
 color_green db  0,255,0,255
 color_white db 255,255,255,255
@@ -47,11 +47,12 @@ key_d dd 68
 key_k dd 75
 key_l dd 76
 
-speed dq 5
+
+speed dq 10
 
 note_count: dq 0
 note_size: dq 0
-judge: dd 30
+judge: dd 100
 
 note_x: dd 330
 note_y: dd 150
