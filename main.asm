@@ -3,7 +3,7 @@ section .data
 window_width dq 1080
 window_height dq 900
 
-name: db "Beep!",0
+name: db "Beep!mania",0
 score_text: db "Score:",0
 
 format: db "%i",0
