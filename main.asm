@@ -99,17 +99,13 @@ key2_file: db "./config/key2.txt",0
 key3_file: db "./config/key3.txt",0
 key4_file: db "./config/key4.txt",0
 
+beep dq 7
+
 section .bss
 judge_level: resd 10
 notelist: resd 4000
 speed: resq 1
 end_time: resq 1
-
-;key_list:
-;key_1: resq 1
-;key_2: resq 1
-;key_3: resq 1
-;key_4: resq 1
 
 
 section .text
@@ -316,7 +312,7 @@ main_loop:
 	mov eax, [color_yellow]
 	mov [judge_color],  eax
 
-	jmp .note_judge_step3
+	jmp .beep
 
 .note_judge_A:
 	mov eax, [score]
@@ -330,7 +326,7 @@ main_loop:
 	mov eax, [color_green]
 	mov [judge_color],  eax
 
-	jmp .note_judge_step3
+	jmp .beep
 
 
 .note_judge_B:
@@ -345,12 +341,22 @@ main_loop:
 	mov eax, [color_blue]
 	mov [judge_color],  eax
 
+.beep:	; beep 打击音效
 
+
+	mov rax, 1
+	mov rdi, 1
+	mov rsi, beep
+	mov rdx, 1
+	syscall
+
+	jmp .note_judge_step3
 
 .note_judge_step3:
 	add r12, 16
 	sub r13, 1
 	cmp r13, 0
+
 	jne .note_judge
 	
 
