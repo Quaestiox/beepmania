@@ -6,6 +6,8 @@ GamePlay: Notes fall in straight lines down the screen randomly in 30 seconds(de
 
 There are three judgements: Perfect, Great, Good which corresponding to different scores.
 
+**If your output device is Speaker, you will hear beep when you hit the notes correctly**
+
 ![](./game.gif)
 
 ## Dependancies
